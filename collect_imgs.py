@@ -7,7 +7,7 @@ if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR)
 
 classes = list(string.ascii_uppercase) + ['space', 'backspace']
-dataset_size = 100  # Nombre d’images à ajouter par classe
+dataset_size = 500  # Nombre d’images à ajouter par classe
 
 cap = cv2.VideoCapture(0)
 
