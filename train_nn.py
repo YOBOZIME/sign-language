@@ -28,7 +28,7 @@ y_encoded = y_encoded[filtered]
 
 # Split
 if min(Counter(y_encoded).values()) < 2:
-    print("⚠️ Stratification désactivée.")
+    print("Stratification désactivée.")
     x_train, x_test, y_train, y_test = train_test_split(X, y_encoded, test_size=0.2, shuffle=True)
 else:
     x_train, x_test, y_train, y_test = train_test_split(X, y_encoded, test_size=0.2, stratify=y_encoded)
@@ -59,7 +59,7 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # Entraînement
-for epoch in range(150):
+for epoch in range(200):
     model.train()
     optimizer.zero_grad()
     outputs = model(x_train_tensor)

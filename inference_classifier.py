@@ -21,7 +21,7 @@ def get_suggestions(prefix, mots, max_suggestions=3):
         return []
     prefix = prefix.lower()
     suggestions = [mot for mot in mots if mot.startswith(prefix)]
-    random.shuffle(suggestions)  # Mélange aléatoirement
+    random.shuffle(suggestions)
     return suggestions[:max_suggestions]
 
 
@@ -64,6 +64,7 @@ vote_threshold = 0.8
 space_gesture = "space"
 clear_gesture = "C"
 backspace_gesture = "backspace"
+backspace_used = False
 current_word = []
 last_char = None
 last_sentence = ""
@@ -138,19 +139,50 @@ while True:
                     if predicted_char != last_char:
                         stable_gesture_start_time = current_time
                         last_char = predicted_char
+                        backspace_used = False  # Réinitialise le flag dès que le geste change
                     elif time.time() - stable_gesture_start_time >= gesture_stability_delay:
+
                         if predicted_char == clear_gesture:
                             current_word = []
-                        elif predicted_char == backspace_gesture and current_word:
-                            current_word.pop()
+                            backspace_used = False
+
+                        elif predicted_char == backspace_gesture:
+                            if not backspace_used and current_word:
+                                current_word.pop()
+                                backspace_used = True  # Empêche suppression multiple
+
+                        elif predicted_char in ['1', '2', '3']:
+                            index = int(predicted_char) - 1
+                            if 0 <= index < len(suggestions):
+                                suggestion = suggestions[index]
+                                # Convertit la phrase actuelle
+                                sentence = ''.join(current_word).strip()
+                                words = sentence.split()
+
+                                # Remplace uniquement le dernier mot par la suggestion
+                                if words:
+                                    words[-1] = suggestion
+                                else:
+                                    words = [suggestion]
+
+                                # Met à jour current_word avec la nouvelle phrase
+                                current_word = list(' '.join(words) + ' ')
+
+                                print(f"[INFO] Suggestion '{suggestion}' sélectionnée.")
+                                backspace_used = False  # Réinitialisation
+
                         elif not current_word or current_word[-1] != predicted_char:
-                            char_to_add = " " if predicted_char == space_gesture else predicted_char
+                            char_to_add = " " if predicted_char == space_gesture else predicted_char.lower()
                             current_word.append(char_to_add)
                             stable_gesture_start_time = current_time
+                            backspace_used = False
+
 
     # Phrase et suggestions
     sentence = ''.join(current_word).strip()
-    clean_sentence = re.sub(r'[^a-zA-Z\'-]', '', sentence).lower()
+    last_word = sentence.split()[-1] if sentence else ""
+    clean_sentence = re.sub(r'[^a-zA-Z\'-]', '', last_word).lower()
+
 
     if clean_sentence != last_sentence:
         suggestions = get_suggestions(clean_sentence, corpus)
